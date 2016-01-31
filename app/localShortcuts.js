@@ -14,11 +14,21 @@ module.exports.register = (win) => {
   // listen to the events.
   const simpleWebContentEvents = [
     ['Cmd+Alt+Right', messages.SHORTCUT_NEXT_TAB],
+    ['CmdOrCtrl+Shift+]', messages.SHORTCUT_NEXT_TAB],
     ['Cmd+Alt+Left', messages.SHORTCUT_PREV_TAB],
+    ['CmdOrCtrl+Shift+[', messages.SHORTCUT_PREV_TAB],
     ['CmdOrCtrl+Right', messages.SHORTCUT_ACTIVE_FRAME_FORWARD],
     ['CmdOrCtrl+Left', messages.SHORTCUT_ACTIVE_FRAME_BACK],
     ['CmdOrCtrl+9', messages.SHORTCUT_SET_ACTIVE_FRAME_TO_LAST]
   ]
+
+  if (process.platform === 'win32') {
+    simpleWebContentEvents.push(
+      ['F5', messages.SHORTCUT_ACTIVE_FRAME_RELOAD],
+      ['Ctrl+F5', messages.SHORTCUT_ACTIVE_FRAME_CLEAN_RELOAD],
+      ['F12', messages.SHORTCUT_ACTIVE_FRAME_TOGGLE_DEV_TOOLS],
+      ['Alt+D', messages.SHORTCUT_FOCUS_URL, false])
+  }
 
   // Tab ordering shortcuts
   Array.from(new Array(8), (x, i) => i).reduce((list, i) => {

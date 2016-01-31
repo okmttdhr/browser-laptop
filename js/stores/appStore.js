@@ -160,8 +160,8 @@ function setDefaultWindowSize () {
   const screen = electron.screen
   const primaryDisplay = screen.getPrimaryDisplay()
   if (!appState.get('defaultWindowWidth') && !appState.get('defaultWindowHeight')) {
-    appState = appState.set('defaultWindowWidth', Math.floor(primaryDisplay.bounds.width / 2))
-    appState = appState.set('defaultWindowHeight', Math.floor(primaryDisplay.bounds.height / 2))
+    appState = appState.set('defaultWindowWidth', primaryDisplay.workAreaSize.width)
+    appState = appState.set('defaultWindowHeight', primaryDisplay.workAreaSize.height)
   }
 }
 
@@ -204,11 +204,18 @@ const handleAppAction = (action) => {
         'appState=' + encodeURIComponent(JSON.stringify(appState.toJS())) +
         '&frames=' + encodeURIComponent(JSON.stringify(frames))
 
-      if (process.env.NODE_ENV === 'development') {
-        mainWindow.loadURL('file://' + __dirname + '/../../app/index-dev.html?' + queryString)
-      } else {
-        mainWindow.loadURL('file://' + __dirname + '/../../app/index.html?' + queryString)
+      const willNavigateHandler = (whitelistedUrl, e, url) => {
+        if (url !== whitelistedUrl) {
+          e.preventDefault()
+          mainWindow.webContents.send(messages.SHORTCUT_NEW_FRAME, url)
+        }
       }
+
+      const whitelistedUrl = process.env.NODE_ENV === 'development'
+        ? 'file://' + __dirname + '/../../app/index-dev.html?' + queryString
+        : 'file://' + __dirname + '/../../app/index.html?' + queryString
+      mainWindow.loadURL(whitelistedUrl)
+      mainWindow.webContents.on('will-navigate', willNavigateHandler.bind(null, whitelistedUrl))
       appStore.emitChange()
 
       mainWindow.show()
